@@ -9,10 +9,7 @@ import csv, os
 from django.http import HttpResponse
 from wsgiref.util import FileWrapper
 from django.conf import settings
-from django import forms
 
-from django.core.files.storage import FileSystemStorage
-# Create your views here.
 def post_list(request):
 	posts = Post.objects.filter(published_date__lte=timezone.now()).order_by('published_date')
 	return render(request, 'csvApp/post_list.html', {'posts': posts})
@@ -25,34 +22,37 @@ def import_page(request):
 	return render(request, 'csvApp/import_page.html', {'models': models_list})
 
 def import_csv(request):
-	print(settings.MEDIA_ROOT)
-	print(request.FILES['myfile'])
 	myfile = request.FILES['myfile']
-	print(type(myfile.name))
-	# form = MyForm(request.POST)
 	model_name = request.POST.get('model_name')
 
 	Model = apps.get_model(app_label='csvApp', model_name=model_name)
 
-
 	reader = csv.reader(myfile)
 	header = next(reader)
-	print(header)
-	Model.objects.bulk_create([Model(row[0], row[1]) for row in reader])
 
+	fields_dict = Model._meta.get_fields()
+	fields_list=[]
+	for key in fields_dict:
+		fields_list.append(key.name)
 
-	# for line in reader:
-	# 	print(line)
+	if(header==fields_list):
+		# handle error here
+		try:
+			# Model.objects.bulk_create([Model( r for r in row) for row in reader])
+			for row in reader:
+				model=Model()
+				for r in range(len(row)):
+					print header[r]
+					line = string(row)
+					# model.text='asd'
+					model[header[r]]=row[r]
+				model.save()
+			return HttpResponse('Imported Successfully')
+		except Exception as e:
+			return HttpResponse(e)
 
-
-	#send result with error
-	fs = FileSystemStorage()
-	filename = fs.save(myfile.name, myfile)
-	uploaded_file_url = fs.url(filename)
-	# print("uploaded")
-	return render(request, 'csvApp/import_page.html', {
-		'uploaded_file_url': uploaded_file_url
-	})
+	else:
+		return HttpResponse('fields do not match')
 
 def models_list(request):
 	models = apps.all_models['csvApp']

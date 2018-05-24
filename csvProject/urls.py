@@ -19,6 +19,5 @@ from django.contrib import admin
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^export/', include('csvApp.urls')),
-    url(r'^/$', include('csvApp.urls')),
+    url(r'', include('csvApp.urls')),
 ]
