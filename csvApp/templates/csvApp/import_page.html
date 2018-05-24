@@ -2,7 +2,7 @@
 <h2>Select CSV file to import</h2>
 
 {% block content %}
-  <form method="post" action="/export/importCsv" enctype="multipart/form-data">
+  <form method="post" action="/importCsv" enctype="multipart/form-data">
     {% csrf_token %}
     <input type="file" name="myfile">
     <select name="model_name">
